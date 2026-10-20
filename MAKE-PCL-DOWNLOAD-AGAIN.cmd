@@ -11,22 +11,46 @@ exit /b %PCL_TOOL_EXIT%
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
 $ExpectedHash = '6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386'
-$Offset = 180442
-$OldBytes = [Convert]::FromBase64String('cjNHAXB++wkABCwHfvsJAAQrFn75CQAE/gZnFAAGc40FAAolgPsJAAQUGHOOBQAK')
-$NewBytes = [Convert]::FromBase64String('fg8EAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+$DownloadOnlyHash = 'ba7585206d97d63ad6f48cdf5fe3f79757b405990d85d1009e1ee19edf4272a9'
+$PatchedHash = '9d41a4947d9b3ab09582379349fdb77ef6bfc3e2034a2951f6abcdefecd32cdd'
+$OriginalLength = 5980160
+$Patches = @'
+[{"offset":180442,"old":"cjNHAXB++wkABCwHfvsJAAQrFn75CQAE/gZnFAAGc40FAAolgPsJAAQUGHOOBQAK","new":"fg8EAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},{"offset":720216,"old":"ECEBAA==","new":"AGJbAA=="},{"offset":464,"old":"DAAAAA==","new":"4AUAAA=="},{"offset":472,"old":"AAIAAA==","new":"AAYAAA=="},{"offset":492,"old":"QAAAQg==","new":"YAAAYA=="},{"offset":208,"old":"AIBbAA==","new":"AIBbAA=="}]
+'@ | ConvertFrom-Json
+$PatchTail = [Convert]::FromBase64String('GzAFAIcDAABoAAARcjtGAHACJS0GJnJTRgBwKGQAAAoWcl1GAHAo3QAAChQLcrYDAHAMcvZGAHAovgoABgMo0QAACg0JchhHAHBv4gEACi0NCXIcRwBwb+IBAAosGHIgRwBwCSjAAAAKGBcoZAIABnPCAgAKehUTBAISBf4VNgAAAREFKF4DAAoLB3JCRwBwb18DAAosCBkTBN1HAgAAB3JgRwBwb18DAAosCBgTBN0yAgAAB3J8RwBwb18DAAosCBoTBN0dAgAAB3KkRwBwb18DAAosQAdypEcAcG9fAwAKb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3YAQAAGRME3dABAAAHcs5HAHBvXwMACiwIFxME3bsBAAAHcuhHAHBvXwMACi0NB3IASABwb18DAAosCR8JEwTdmAEAAAAHb2MDAApvZAMAChMGOBMBAAARBm9lAwAKEwcRB29mAwAKcmwwAHAWKGcDAAoTCBEIFppybDAAcCjAAAAKDBEIKIEAACsYQNoAAAARCBeackJHAHAWKLAAAAotCBkTBN0zAQAAEQgXmnJgRwBwFiiwAAAKLQgYEwTdGgEAABEIF5pyfEcAcBYosAAACi0IGhME3QEBAAARCBeacqRHAHAWKLAAAAotPREHb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3BAAAAGRMEch5IAHAM3bMAAAARCBeacs5HAHAWKLAAAAotCBcTBN2aAAAAEQgXmnLoRwBwFiiwAAAKLBERCBeacgBIAHAWKLAAAAotBh8JEwTechEGbygAAAo64f7//94MEQYsBxEGbycAAArc3lYlKGIAAAoTCREJFyjTAQAKcjRIAHBv4gEACiwNclZIAHARCXNoAwAKegIoaQMACnJqSABwFiiwAAAKLQ1yckgAcBEJc2gDAAp6csJIAHARCXNoAwAKehEEHwA7MgAAABEEHwE7OQAAABEEHwI7PgAAABEEHwM7QwAAABEEHwQ7SQAAABEEHwk7UAAAADhZAAAAAgcIAwQo9AEABgrdYAAAAAIHCCj2AQAGCt1SAAAAAgcIKPcBAAYK3UQAAAACBwgDKPgBAAYK3TUAAAACBwgDBCj1AQAGCt0lAAAAAgcIKPkBAAYK3RcAAAACByj6AQAGCt0KAAAABywGB29qAwAK3AYqAEFMAAACAAAAQwEAADMBAAB2AgAADAAAAAAAAAAAAAAAbQAAABcCAACEAgAAVgAAADMAAAECAAAAJwAAAFQDAAB7AwAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
 function Get-Hash([byte[]] $Bytes) {
     $Hasher = [Security.Cryptography.SHA256]::Create()
     try { return ([BitConverter]::ToString($Hasher.ComputeHash($Bytes))).Replace('-','').ToLowerInvariant() }
     finally { $Hasher.Dispose() }
 }
 function Get-State([byte[]] $Bytes) {
-    if ((Get-Hash $Bytes) -eq $ExpectedHash) { return 'original' }
-    if ($Bytes.Length -lt ($Offset + 48)) { throw '文件不受支持，未修改。' }
-    for ($i = 0; $i -lt 48; $i++) { if ($Bytes[$Offset + $i] -ne $NewBytes[$i]) { throw '文件版本不匹配，未修改。仅支持已验证的正式版 2.99.0.0 (413)。' } }
-    $Normalized = [byte[]] $Bytes.Clone()
-    [Array]::Copy($OldBytes, 0, $Normalized, $Offset, 48)
-    if ((Get-Hash $Normalized) -ne $ExpectedHash) { throw '文件已被其他方式修改，未作修改。' }
-    return 'patched'
+    $Hash = Get-Hash $Bytes
+    if ($Hash -eq $ExpectedHash) { return 'original' }
+    if ($Hash -eq $DownloadOnlyHash) { return 'download-only' }
+    if ($Hash -eq $PatchedHash) { return 'patched' }
+    throw '文件版本或完整性不匹配，未修改。仅支持已验证的正式版 2.99.0.0 (413) 及本工具修复过的文件。'
+}
+function Get-Original([byte[]] $Bytes) {
+    $State = Get-State $Bytes
+    $Original = New-Object byte[] $OriginalLength
+    [Array]::Copy($Bytes, 0, $Original, 0, $OriginalLength)
+    foreach ($Patch in $Patches) {
+        $Old = [Convert]::FromBase64String($Patch.old)
+        [Array]::Copy($Old, 0, $Original, [int]$Patch.offset, $Old.Length)
+    }
+    if ((Get-Hash $Original) -ne $ExpectedHash) { throw '原版还原校验失败，未修改。' }
+    return ,$Original
+}
+function Get-Patched([byte[]] $Original) {
+    $Patched = New-Object byte[] ($OriginalLength + $PatchTail.Length)
+    [Array]::Copy($Original, 0, $Patched, 0, $OriginalLength)
+    foreach ($Patch in $Patches) {
+        $New = [Convert]::FromBase64String($Patch.new)
+        [Array]::Copy($New, 0, $Patched, [int]$Patch.offset, $New.Length)
+    }
+    [Array]::Copy($PatchTail, 0, $Patched, $OriginalLength, $PatchTail.Length)
+    if ((Get-Hash $Patched) -ne $PatchedHash) { throw '补丁校验失败，未修改。' }
+    return ,$Patched
 }
 function Read-Program([string] $Path) {
     $Info = Get-Item -LiteralPath $Path
@@ -85,7 +109,7 @@ try {
 |                                                                            |
 +----------------------------------------------------------------------------+
 '@ -ForegroundColor Cyan
-    Write-Host 'PCL 下载页修复工具 | 免安装 Windows 版'
+    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.1.0 | 免安装 Windows 版'
     $Target = $env:PCL_TOOL_PATH
     $Mode = [string]$env:PCL_TOOL_MODE
     if ($Mode -notin @('', '--check', '--restore', '--yes')) { throw '用法：修复PCL下载.cmd "PCL.exe完整路径" [--check|--restore|--yes]' }
@@ -120,16 +144,16 @@ try {
         Write-Atomic $Target $Data $Output
         Write-Host '已恢复原版，备份保留。'
     } else {
-        if ($State -eq 'patched') { Write-Host '已修复，无需重复操作。'; exit 0 }
-        if ($Mode -ne '--yes' -and (Read-Host '请先关闭 PCL。备份并恢复下载页？[y/N]') -notmatch '^(?i)y(es)?$') { Write-Host '已取消。'; exit 0 }
+        if ($State -eq 'patched') { Write-Host '游戏下载和整合包拖入安装均已修复，无需重复操作。'; exit 0 }
+        if ($Mode -ne '--yes' -and (Read-Host '请先关闭 PCL。备份并恢复游戏下载及整合包拖入安装？[y/N]') -notmatch '^(?i)y(es)?$') { Write-Host '已取消。'; exit 0 }
+        $Original = Get-Original $Data
         if ([IO.File]::Exists($Backup)) { if ((Get-Hash (Read-Program $Backup)) -ne $ExpectedHash) { throw '已有备份与原版不符，未修改。请先妥善保留该备份。' } }
         else {
             $Stream = New-Object IO.FileStream($Backup, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
-            try { $Stream.Write($Data,0,$Data.Length); $Stream.Flush($true) } finally { $Stream.Dispose() }
+            try { $Stream.Write($Original,0,$Original.Length); $Stream.Flush($true) } finally { $Stream.Dispose() }
         }
         if ((Get-Hash (Read-Program $Backup)) -ne $ExpectedHash) { throw '备份校验失败，未修改。' }
-        $Output = [byte[]] $Data.Clone()
-        [Array]::Copy($NewBytes, 0, $Output, $Offset, 48)
+        $Output = Get-Patched $Original
         if ((Get-State $Output) -ne 'patched') { throw '补丁校验失败。' }
         Write-Atomic $Target $Data $Output
         Write-Host '玩的开心' -ForegroundColor Green
