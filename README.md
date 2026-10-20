@@ -1,8 +1,13 @@
 # MAKE PCL DOWNLOAD AGAIN!
 
+[![Windows 自动检查](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/verify.yml)
+[![发行文件来源验证](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/attest-release.yml/badge.svg?branch=main)](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/attest-release.yml)
+
 **一键解除PCL下载限制 玩的开心**
 
 **本项目免费提供，作者未在任何渠道售卖本工具。如通过购买获取，请联系商家退款。**
+
+v1.1.1 已生成 [GitHub 签名来源证明](https://github.com/caotaiyi/make-pcl-download-again/attestations/57839429)，并通过 [公开 Windows 自动检查](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/verify.yml)。可核对文件摘要、仓库和工作流；这些记录不等于无病毒保证或 GitHub 人工审核。详见 [来源与验证说明](TRUST.md)。
 
 Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/make-pcl-download-again/raw/refs/heads/main/MAKE-PCL-DOWNLOAD-AGAIN.cmd)，双击运行。无需解压，也无需安装 Python、Java 或其他编程环境。
 
