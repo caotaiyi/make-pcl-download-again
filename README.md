@@ -14,7 +14,7 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 
 **MAKE PCL DOWNLOAD AGAIN! 玩的开心。**
 
-## Windows：下载一个 CMD 就够了
+## Windows：
 
 1. 关闭 PCL。
 2. [下载 CMD 文件](https://github.com/caotaiyi/make-pcl-download-again/raw/refs/heads/main/MAKE-PCL-DOWNLOAD-AGAIN.cmd)，双击打开；也可以直接把 PCL 的 `.exe` 拖到 CMD 上。
