@@ -1,0 +1,59 @@
+name: Attest release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to verify and attest
+        required: true
+        default: v1.1.1
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  attest:
+    if: github.repository == 'caotaiyi/make-pcl-download-again'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Validate tag
+        shell: bash
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Expected a stable version tag.'; exit 1; }
+      - name: Check out the release tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - name: Assemble exact script bytes and compare published release
+        shell: bash
+        run: |
+          mkdir -p dist "$RUNNER_TEMP/pcl-release-download"
+          cp -- MAKE-PCL-DOWNLOAD-AGAIN.cmd SHA256SUMS.txt dist/
+          (cd dist && sha256sum --check SHA256SUMS.txt)
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern MAKE-PCL-DOWNLOAD-AGAIN.cmd --pattern SHA256SUMS.txt --dir "$RUNNER_TEMP/pcl-release-download"
+          cmp -- dist/MAKE-PCL-DOWNLOAD-AGAIN.cmd "$RUNNER_TEMP/pcl-release-download/MAKE-PCL-DOWNLOAD-AGAIN.cmd"
+          cmp -- dist/SHA256SUMS.txt "$RUNNER_TEMP/pcl-release-download/SHA256SUMS.txt"
+          {
+            echo '## Release source comparison'
+            printf 'Release: `%s`\n\n' "$RELEASE_TAG"
+            printf 'Tag commit: `%s`\n\n' "$(git rev-parse HEAD)"
+            echo 'Published CMD and checksum file match the tag byte for byte.'
+            echo 'This attestation proves workflow provenance, not malware-free status.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Sign and publish provenance attestation
+        id: attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/MAKE-PCL-DOWNLOAD-AGAIN.cmd
