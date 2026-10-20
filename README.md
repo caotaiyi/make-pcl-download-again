@@ -2,6 +2,8 @@
 
 **一键解除PCL下载限制 玩的开心**
 
+**本项目免费提供，作者未在任何渠道售卖本工具。如通过购买获取，请联系商家退款。**
+
 Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/make-pcl-download-again/raw/refs/heads/main/MAKE-PCL-DOWNLOAD-AGAIN.cmd)，双击运行。无需解压，也无需安装 Python、Java 或其他编程环境。
 
 ## 玩的开心
@@ -22,6 +24,32 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 4. 输入 `y` 确认。看到「玩的开心」后，重新打开 PCL，可进入「下载 → 自动安装」，也可以把本地 `.zip` / `.mrpack` 整合包拖入 PCL 安装。
 
 CMD 调用 Windows 自带的 PowerShell，不需要安装额外软件。自动查找最多深入 3 层、检查 15,000 个目录项，约 6 秒后停止继续查找；慢盘的单次读取可能更久。直接拖入文件可以省去查找。
+
+## v1.1.1：双击自动自检
+
+直接下载 CMD、双击运行即可。脚本会自动进行 SHA-256 完整性自检，通过后继续原有流程；不增加确认步骤，也不联网获取校验值。发现不一致或校验信息缺失时，停止进入修复逻辑，并提示重新从原项目下载。
+
+自检覆盖脚本内容，包括启动段和内嵌补丁数据；计算时仅将自检摘要字段标准化为 64 个零，避免摘要包含自身。自检摘要与下面公布的完整文件 SHA-256 用途不同，请以发布页面的完整文件值做独立比对。
+
+**自检主要用于发现损坏和意外改动，不是数字签名，不能证明来源可信。恶意修改者可以同时改写脚本、自检代码或摘要。** 请从本项目下载；如需独立验证，使用原项目公布的校验值，不要只信转发者附带的值。
+
+v1.1.1 发布附件 `MAKE-PCL-DOWNLOAD-AGAIN.cmd` 的完整文件 SHA-256（[校验值文件](SHA256SUMS.txt)）：
+
+```text
+7e38a87fa7e1d8ff0476cbf4e750977f74b025aa890a82972e50da2333b2db5a
+```
+
+可选：在下载目录打开 PowerShell，粘贴下面一段即可比对文件。此操作只计算摘要，不运行下载的 CMD。改过文件名时请调整路径。
+
+```powershell
+$expected = '7e38a87fa7e1d8ff0476cbf4e750977f74b025aa890a82972e50da2333b2db5a'
+$actual = (Get-FileHash -LiteralPath '.\MAKE-PCL-DOWNLOAD-AGAIN.cmd' -Algorithm SHA256 -ErrorAction Stop).Hash
+if ($actual -eq $expected) {
+    Write-Host '校验通过：与本项目发布的 v1.1.1 CMD 一致。' -ForegroundColor Green
+} else {
+    throw '校验不一致，请从原项目重新下载，勿运行该文件。'
+}
+```
 
 ## v1.1.0：恢复整合包拖入安装
 
