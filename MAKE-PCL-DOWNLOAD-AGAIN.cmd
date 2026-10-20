@@ -3,10 +3,11 @@ chcp 65001 >nul
 set "PCL_TOOL_PATH=%~1"
 set "PCL_TOOL_MODE=%~2"
 set "PCL_TOOL_SELF=%~f0"
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$s=[IO.File]::ReadAllText($env:PCL_TOOL_SELF,[Text.Encoding]::UTF8); & ([scriptblock]::Create(($s -split '(?m)^# POWERSHELL_START\r?$',2)[1]))"
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { $s=[Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($env:PCL_TOOL_SELF)); $p='(?m)^(# PCL_TOOL_SHA256: )([0-9a-f]{64})(\r?)$'; $m=[regex]::Matches($s,$p); if($m.Count -ne 1){throw 'Missing or invalid script checksum.'}; $n=[regex]::Replace($s,$p,('${1}'+('0'*64)+'${3}')); $a=[Security.Cryptography.SHA256]::Create(); try{$h=([BitConverter]::ToString($a.ComputeHash([Text.Encoding]::UTF8.GetBytes($n)))).Replace('-','').ToLowerInvariant()}finally{$a.Dispose()}; if($h -ne $m[0].Groups[2].Value){throw 'Script integrity check failed. Download again from github.com/caotaiyi/make-pcl-download-again .'}; Write-Host '[OK] Script integrity self-check passed.' -ForegroundColor Green; & ([scriptblock]::Create(($s -split '(?m)^# POWERSHELL_START\r?$',2)[1])) } catch { Write-Host ('[STOP] '+$_.Exception.Message) -ForegroundColor Red; exit 1 }"
 set "PCL_TOOL_EXIT=%errorlevel%"
 if not defined PCL_TOOL_MODE pause
 exit /b %PCL_TOOL_EXIT%
+# PCL_TOOL_SHA256: d1b064418e9621203fef55b840bddc2902d29e292dd6106fcf1f292d8af7ddc5
 # POWERSHELL_START
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
@@ -109,7 +110,8 @@ try {
 |                                                                            |
 +----------------------------------------------------------------------------+
 '@ -ForegroundColor Cyan
-    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.1.0 | 免安装 Windows 版'
+    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.1.1 | 免安装 Windows 版'
+    Write-Host '本工具免费提供，作者未在任何渠道售卖。如购买获取，请联系商家退款。'
     $Target = $env:PCL_TOOL_PATH
     $Mode = [string]$env:PCL_TOOL_MODE
     if ($Mode -notin @('', '--check', '--restore', '--yes')) { throw '用法：修复PCL下载.cmd "PCL.exe完整路径" [--check|--restore|--yes]' }
