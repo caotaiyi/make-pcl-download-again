@@ -8,9 +8,7 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 
 <img src="happy.png" alt="玩的开心" width="360">
 
-一个只做一件事的小工具：把 PCL 的 Minecraft 自动安装下载页重新接回来。
 
-打开是 ASCII 艺术字，找到启动器，确认一下，剩下的交给工具。修复前会留下原版备份；想恢复，也能随时回去。
 
 希望你把时间花在盖房子、挖矿、和朋友联机上。愿你的钻石总在下一镐，愿你的存档平安无事。
 
