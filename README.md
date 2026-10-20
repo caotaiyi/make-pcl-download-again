@@ -23,12 +23,6 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 
 CMD 调用 Windows 自带的 PowerShell，不需要安装额外软件。自动查找最多深入 3 层、检查 15,000 个目录项，约 6 秒后停止继续查找；慢盘的单次读取可能更久。直接拖入文件可以省去查找。
 
-## macOS
-
-下载 [macOS修复.command](macOS修复.command) 和 [pcl-download-macos.js](pcl-download-macos.js)，放到同一目录。在终端输入 `sh` 和一个空格，把 `macOS修复.command` 拖入终端，然后回车。
-
-使用 macOS 自带组件，无需安装编程语言。这里修补的是 Windows 版 PCL 的 `.exe` 文件；PCL 自身的运行仍需要 Windows 或已有的兼容环境。**macOS 端尚未实机验证。**
-
 ## 检查与恢复
 
 在 CMD 所在目录打开终端，可以运行：
@@ -43,8 +37,6 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\Plain Craft Launcher 2.exe" --yes
 :: 从原版备份恢复，需要确认
 MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\Plain Craft Launcher 2.exe" --restore
 ```
-
-macOS 支持相同参数，放在文件路径后面即可。
 
 ## 支持范围
 
