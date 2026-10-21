@@ -8,7 +8,15 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --yes --profile "D:\414.json"
 MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --restore --profile "D:\414.json"
 ```
 
-提供了可工作的 [413 示例](413.example.json)，可用于验证接口。**它不适用于 414。当前没有经过验证的 414 补丁配置，不能据此宣称 414 已可修复。**
+提供了可工作的 [413 示例](413.example.json)，可用于验证接口。**它不适用于 414。**
+
+本目录另附社区适配者提供的 [414 配置](414.json)，对应 PCL 2.99.0.0 快照版：
+
+```bat
+MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL 2.99.0.0 (414).exe" --yes --profile ".\profiles\414.json"
+```
+
+该配置由社区提供、未经本项目独立验证；使用前请确认原文件 SHA-256 为 `5b64d6d540c376390470cea3ab99d47661e8bca81be2ba647ea83e7d2e9428fa`。
 
 有 414 原始文件的适配者只需生成对应 JSON，即可接入同一个工具，不必改掉硬编码的版本白名单。配置中的摘要和原始字节必须与目标文件匹配；不能把 413 示例只改名为 414。
 

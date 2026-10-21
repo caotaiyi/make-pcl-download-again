@@ -1,0 +1,75 @@
+{
+  "originalLength": 5985280,
+  "originalHash": "5b64d6d540c376390470cea3ab99d47661e8bca81be2ba647ea83e7d2e9428fa",
+  "patchedHash": "3fda153bf7150e72259b2c59a3d68cb8442f1be2a2a29b48681b1d7de538eeea",
+  "patches": [
+    {
+      "offset": 464,
+      "old": "DAA=",
+      "new": "AAY="
+    },
+    {
+      "offset": 473,
+      "old": "Ag==",
+      "new": "Bg=="
+    },
+    {
+      "offset": 492,
+      "old": "QA==",
+      "new": "YA=="
+    },
+    {
+      "offset": 495,
+      "old": "Qg==",
+      "new": "Yg=="
+    },
+    {
+      "offset": 182174,
+      "old": "copJAXB+/Qk=",
+      "new": "fg8EAAQAAAA="
+    },
+    {
+      "offset": 182183,
+      "old": "BCwHfv0J",
+      "new": "AAAAAAAA"
+    },
+    {
+      "offset": 182190,
+      "old": "BCsWfvsJ",
+      "new": "AAAAAAAA"
+    },
+    {
+      "offset": 182197,
+      "old": "BP4GZxQ=",
+      "new": "AAAAAAA="
+    },
+    {
+      "offset": 182203,
+      "old": "BnOOBQ==",
+      "new": "AAAAAA=="
+    },
+    {
+      "offset": 182208,
+      "old": "CiWA/Qk=",
+      "new": "AAAAAAA="
+    },
+    {
+      "offset": 182214,
+      "old": "BBQYc48F",
+      "new": "AAAAAAAA"
+    },
+    {
+      "offset": 182221,
+      "old": "Cg==",
+      "new": "AA=="
+    },
+    {
+      "offset": 723212,
+      "old": "ECEB",
+      "new": "AIJb"
+    }
+  ],
+  "tail": "GzAFAIcDAABoAAARcjtGAHACJS0GJnJTRgBwKGQAAAoWcl1GAHAo3QAAChQLcrYDAHAMcvZGAHAovgoABgMo0QAACg0JchhHAHBv4gEACi0NCXIcRwBwb+IBAAosGHIgRwBwCSjAAAAKGBcoZAIABnPCAgAKehUTBAISBf4VNgAAAREFKF4DAAoLB3JCRwBwb18DAAosCBkTBN1HAgAAB3JgRwBwb18DAAosCBgTBN0yAgAAB3J8RwBwb18DAAosCBoTBN0dAgAAB3KkRwBwb18DAAosQAdypEcAcG9fAwAKb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3YAQAAGRME3dABAAAHcs5HAHBvXwMACiwIFxME3bsBAAAHcuhHAHBvXwMACi0NB3IASABwb18DAAosCR8JEwTdmAEAAAAHb2MDAApvZAMAChMGOBMBAAARBm9lAwAKEwcRB29mAwAKcmwwAHAWKGcDAAoTCBEIFppybDAAcCjAAAAKDBEIKIEAACsYQNoAAAARCBeackJHAHAWKLAAAAotCBkTBN0zAQAAEQgXmnJgRwBwFiiwAAAKLQgYEwTdGgEAABEIF5pyfEcAcBYosAAACi0IGhME3QEBAAARCBeacqRHAHAWKLAAAAotPREHb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3BAAAAGRMEch5IAHAM3bMAAAARCBeacs5HAHAWKLAAAAotCBcTBN2aAAAAEQgXmnLoRwBwFiiwAAAKLBERCBeacgBIAHAWKLAAAAotBh8JEwTechEGbygAAAo64f7//94MEQYsBxEGbycAAArc3lYlKGIAAAoTCREJFyjTAQAKcjRIAHBv4gEACiwNclZIAHARCXNoAwAKegIoaQMACnJqSABwFiiwAAAKLQ1yckgAcBEJc2gDAAp6csJIAHARCXNoAwAKehEEHwA7MgAAABEEHwE7OQAAABEEHwI7PgAAABEEHwM7QwAAABEEHwQ7SQAAABEEHwk7UAAAADhZAAAAAgcIAwQo9AEABgrdYAAAAAIHCCj2AQAGCt1SAAAAAgcIKPcBAAYK3UQAAAACBwgDKPgBAAYK3TUAAAACBwgDBCj1AQAGCt0lAAAAAgcIKPkBAAYK3RcAAAACByj6AQAGCt0KAAAABywGB29qAwAK3AYqAEFMAAACAAAAQwEAADMBAAB2AgAADAAAAAAAAAAAAAAAbQAAABcCAACEAgAAVgAAADMAAAECAAAAJwAAAFQDAAB7AwAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+  "schemaVersion": 1,
+  "name": "PCL Snapshot 414 (2.99.0.0 build 414) - community profile"
+}
