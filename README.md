@@ -30,9 +30,21 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 
 CMD 调用 Windows 自带的 PowerShell，不需要安装额外软件。自动查找最多深入 3 层、检查 15,000 个目录项，约 6 秒后停止继续查找；慢盘的单次读取可能更久。直接拖入文件可以省去查找。
 
+## v1.3.0 实验功能：414 自动结构适配
+
+414 用户无需准备 JSON：关闭 PCL 后双击新版 CMD，选择启动器并确认即可尝试。内置 413 的已验证文件继续走原有精确校验路径；其他文件会尝试读取构建号及方法结构，只为 2.99.0（414）生成实验性补丁。
+
+自动适配使用 Windows 自带 .NET 的只读反射检查元数据，不运行目标 PCL 的代码。对下载页初始化、整合包分流入口及 7 个安装器共 9 个方法，比较指令、解析后的成员签名、局部变量和异常处理结构；仅忽略元数据编号及日志构建路径差异。完整匹配后，自动计算字段标记、方法入口和 PE 修改位置，生成对应文件的补丁。
+
+修复前保留原版备份；再次检查、重复运行或恢复时，从备份重新推导同一补丁，不需要额外 JSON。请保留 `.pcl-download-backup`。结构不匹配、备份冲突或已修复文件被改动时停止。
+
+**这是真正的自动定位机制，但尚未在真实 414 文件上验证。已在人工构造的 414 测试副本中改变类型、字段和方法编号及文件布局，验证自动修复、重复运行、恢复及拒绝结构变化；该副本不是真实快照版。自动识别也不证明 EXE 来源可信。**
+
+源码在 [src/AutoAdapter.cs](src/AutoAdapter.cs)，完整嵌入 CMD，用户无需另外下载源码或安装编程语言。开发者可用 [同步工具](tools/Update-EmbeddedAdapter.ps1) 更新内嵌源码和摘要；CI 会核对公开源码与内嵌源码一致。
+
 ## v1.2.0：开放自定义版本适配接口
 
-新增 `--profile` 接口：其他版本可以通过独立 JSON 配置提供文件摘要、修改位置和补丁数据，无需改动 CMD 源码。普通双击仍使用内置的 413 配置。详见 [适配接口与 413 示例](profiles/README.md)。
+新增 `--profile` 接口：其他版本可以通过独立 JSON 配置提供文件摘要、修改位置和补丁数据，无需改动 CMD 源码。414 在 v1.3.0 中优先自动适配，JSON 接口仍供高级适配使用。详见 [适配接口与 413 示例](profiles/README.md)。
 
 ```bat
 MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --check --profile "D:\414.json"
@@ -40,7 +52,7 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --yes --profile "D:\414.json"
 MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --restore --profile "D:\414.json"
 ```
 
-**414 的接入接口已开放，但目前没有取得和验证该版本的实际补丁配置。不能直接使用 413 的配置或仅修改版本名称。** 自定义配置会明确提示来源；已有签名来源证明及脚本自检不覆盖外部 JSON。检查模式会在内存中核对补丁计划，不修改目标文件。
+**无需 JSON 的 414 实验性自动适配见上节；外部配置仍需真实适配，不能直接使用 413 的配置或仅修改版本名称。** 自定义配置会明确提示来源；已有签名来源证明及脚本自检不覆盖外部 JSON。检查模式会在内存中核对补丁计划，不修改目标文件。
 
 ## 双击自动自检
 
@@ -50,19 +62,19 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\PCL-414.exe" --restore --profile "D:\414.json"
 
 **自检主要用于发现损坏和意外改动，不是数字签名，不能证明来源可信。恶意修改者可以同时改写脚本、自检代码或摘要。** 请从本项目下载；如需独立验证，使用原项目公布的校验值，不要只信转发者附带的值。
 
-v1.2.0 发布附件 `MAKE-PCL-DOWNLOAD-AGAIN.cmd` 的完整文件 SHA-256（[校验值文件](SHA256SUMS.txt)）：
+v1.3.0 发布附件 `MAKE-PCL-DOWNLOAD-AGAIN.cmd` 的完整文件 SHA-256（[校验值文件](SHA256SUMS.txt)）：
 
 ```text
-845f32a6e9df2e484013e3840342f01900ee0ce083ce3312a56f3188af5a8986
+0fb29bcf01cd08ca2b82f23604b48a978b0bda9341f173215ed02fc5f557d078
 ```
 
 可选：在下载目录打开 PowerShell，粘贴下面一段即可比对文件。此操作只计算摘要，不运行下载的 CMD。改过文件名时请调整路径。
 
 ```powershell
-$expected = '845f32a6e9df2e484013e3840342f01900ee0ce083ce3312a56f3188af5a8986'
+$expected = '0fb29bcf01cd08ca2b82f23604b48a978b0bda9341f173215ed02fc5f557d078'
 $actual = (Get-FileHash -LiteralPath '.\MAKE-PCL-DOWNLOAD-AGAIN.cmd' -Algorithm SHA256 -ErrorAction Stop).Hash
 if ($actual -eq $expected) {
-    Write-Host '校验通过：与本项目发布的 v1.2.0 CMD 一致。' -ForegroundColor Green
+    Write-Host '校验通过：与本项目发布的 v1.3.0 CMD 一致。' -ForegroundColor Green
 } else {
     throw '校验不一致，请从原项目重新下载，勿运行该文件。'
 }
@@ -91,7 +103,7 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\Plain Craft Launcher 2.exe" --restore
 
 ## 支持范围
 
-- 内置支持经过文件校验的 **PCL 正式版 2.99.0.0 (413)**；其他版本可通过独立适配配置接入，414 的实际补丁参数仍待验证。
+- 内置支持经过文件校验的 **PCL 正式版 2.99.0.0 (413)**；414 可尝试实验性自动结构适配（未实机验证）；其他版本可通过独立适配配置接入。
 - 修改前先在启动器旁保存 `.pcl-download-backup` 备份；不覆盖不匹配的备份，重复运行不会重复修改。
 - 恢复 MC「自动安装」下载页的版本列表加载器，并补回整合包格式识别后的安装器分流。兼容原版及 v1.0.0 已修复的文件，重复运行会跳过。
 - 已在真实 PCL 文件副本上验证修复、旧补丁升级、重复运行、备份冲突与恢复，恢复后与原文件完全一致。另将实际补丁中的识别与分流 IL 放入隔离验证程序，使用 16 个根目录/嵌套目录压缩包样例验证格式分流、成功/异常路径及资源释放，并验证损坏 ZIP 报错。安装器调用在隔离验证中使用替身；尚未完成联网下载及真实整合包的端到端安装验证。

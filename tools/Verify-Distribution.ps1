@@ -4,6 +4,12 @@ $ScriptPath = Join-Path $ArtifactRoot 'MAKE-PCL-DOWNLOAD-AGAIN.cmd'
 $ChecksumPath = Join-Path $ArtifactRoot 'SHA256SUMS.txt'
 $Bytes = [IO.File]::ReadAllBytes($ScriptPath)
 $Source = [Text.Encoding]::UTF8.GetString($Bytes)
+$AdapterFile = Join-Path $ArtifactRoot 'src/AutoAdapter.cs'
+if ([IO.File]::Exists($AdapterFile)) {
+    $Embedded = [regex]::Match($Source, '(?s)\$AutoAdapterSource = @''\r?\n(.*?)\r?\n''@')
+    $AdapterText = [IO.File]::ReadAllText($AdapterFile).Replace("`r`n", "`n").TrimEnd()
+    if (-not $Embedded.Success -or $Embedded.Groups[1].Value.Replace("`r`n", "`n").TrimEnd() -ne $AdapterText) { throw 'Embedded automatic adapter differs from public source.' }
+}
 if ($Bytes.Length -ge 3 -and $Bytes[0] -eq 239 -and $Bytes[1] -eq 187 -and $Bytes[2] -eq 191) { throw 'CMD must not have a UTF-8 BOM.' }
 if ($Source -match '(?<!\r)\n') { throw 'CMD must use CRLF line endings.' }
 $Checksum = [IO.File]::ReadAllText($ChecksumPath).Trim()
