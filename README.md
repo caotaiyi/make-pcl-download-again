@@ -7,7 +7,7 @@
 
 **本项目免费提供，作者未在任何渠道售卖本工具。如通过购买获取，请联系商家退款。**
 
-v1.1.1 已生成 [GitHub 签名来源证明](https://github.com/caotaiyi/make-pcl-download-again/attestations/57839429)，并通过 [公开 Windows 自动检查](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/verify.yml)。可核对文件摘要、仓库和工作流；这些记录不等于无病毒保证或 GitHub 人工审核。详见 [来源与验证说明](TRUST.md)。
+v1.2.0 新增对 PCL 快照版 2.99.0.0 (414) 的支持，并通过 [公开 Windows 自动检查](https://github.com/caotaiyi/make-pcl-download-again/actions/workflows/verify.yml)。可核对文件摘要、仓库和工作流；这些记录不等于无病毒保证或 GitHub 人工审核。详见 [来源与验证说明](TRUST.md)。
 
 Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/make-pcl-download-again/raw/refs/heads/main/MAKE-PCL-DOWNLOAD-AGAIN.cmd)，双击运行。无需解压，也无需安装 Python、Java 或其他编程环境。
 
@@ -29,6 +29,23 @@ Windows 直接下载 [MAKE-PCL-DOWNLOAD-AGAIN.cmd](https://github.com/caotaiyi/m
 4. 输入 `y` 确认。看到「玩的开心」后，重新打开 PCL，可进入「下载 → 自动安装」，也可以把本地 `.zip` / `.mrpack` 整合包拖入 PCL 安装。
 
 CMD 调用 Windows 自带的 PowerShell，不需要安装额外软件。自动查找最多深入 3 层、检查 15,000 个目录项，约 6 秒后停止继续查找；慢盘的单次读取可能更久。直接拖入文件可以省去查找。
+
+## v1.2.0：支持快照版 414
+
+PCL 2.99.0.0 同时存在正式版 (413) 与快照版 (414)，两者的 PE 布局、部分方法位置不同。本版新增快照版 414 的独立补丁数据：注入的方法体与 413 共用（两者的元数据标记一一对应），仅重新计算节表、方法入口与下载列表补丁的偏移。
+
+两个版本各自校验原文件与补丁结果，互不通用：
+
+| 版本 | 原文件 SHA-256 | 补丁结果 SHA-256 |
+| --- | --- | --- |
+| 正式版 413 | `6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386` | `9d41a4947d9b3ab09582379349fdb77ef6bfc3e2034a2951f6abcdefecd32cdd` |
+| 快照版 414 | `5b64d6d540c376390470cea3ab99d47661e8bca81be2ba647ea83e7d2e9428fa` | `3fda153bf7150e72259b2c59a3d68cb8442f1be2a2a29b48681b1d7de538eeea` |
+
+v1.2.0 发布附件 `MAKE-PCL-DOWNLOAD-AGAIN.cmd` 的完整文件 SHA-256（[校验值文件](SHA256SUMS.txt)）：
+
+```text
+abc4d07c28534b33954af4825963c2a98068a7ea26ce79fb0b175e15c4f0e044
+```
 
 ## v1.1.1：双击自动自检
 
@@ -79,7 +96,7 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\Plain Craft Launcher 2.exe" --restore
 
 ## 支持范围
 
-- 当前只支持经过文件校验的 **PCL 正式版 2.99.0.0 (413)**，不匹配的文件会停止处理。
+- 当前支持经过文件校验的 **PCL 2.99.0.0 正式版 (413)** 和 **快照版 (414)**，不匹配的文件会停止处理。
 - 修改前先在启动器旁保存 `.pcl-download-backup` 备份；不覆盖不匹配的备份，重复运行不会重复修改。
 - 恢复 MC「自动安装」下载页的版本列表加载器，并补回整合包格式识别后的安装器分流。兼容原版及 v1.0.0 已修复的文件，重复运行会跳过。
 - 已在真实 PCL 文件副本上验证修复、旧补丁升级、重复运行、备份冲突与恢复，恢复后与原文件完全一致。另将实际补丁中的识别与分流 IL 放入隔离验证程序，使用 16 个根目录/嵌套目录压缩包样例验证格式分流、成功/异常路径及资源释放，并验证损坏 ZIP 报错。安装器调用在隔离验证中使用替身；尚未完成联网下载及真实整合包的端到端安装验证。
@@ -94,7 +111,8 @@ MAKE-PCL-DOWNLOAD-AGAIN.cmd "D:\Plain Craft Launcher 2.exe" --restore
 支持的原文件 SHA-256：
 
 ```text
-6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386
+6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386  （正式版 413）
+5b64d6d540c376390470cea3ab99d47661e8bca81be2ba647ea83e7d2e9428fa  （快照版 414）
 ```
 
 这是一个独立的小工具，与 PCL 官方无关联。感谢原启动器开发者，也祝每个打开它的人，玩的开心。

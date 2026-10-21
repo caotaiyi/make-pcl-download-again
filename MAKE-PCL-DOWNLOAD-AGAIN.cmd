@@ -7,7 +7,7 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$ErrorAction
 set "PCL_TOOL_EXIT=%errorlevel%"
 if not defined PCL_TOOL_MODE pause
 exit /b %PCL_TOOL_EXIT%
-# PCL_TOOL_SHA256: d1b064418e9621203fef55b840bddc2902d29e292dd6106fcf1f292d8af7ddc5
+# PCL_TOOL_SHA256: 134ece4be0a41e91ac8590c11413ec63bfd542c1aba0aa343dc1ba644a1cab50
 # POWERSHELL_START
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
@@ -19,6 +19,27 @@ $Patches = @'
 [{"offset":180442,"old":"cjNHAXB++wkABCwHfvsJAAQrFn75CQAE/gZnFAAGc40FAAolgPsJAAQUGHOOBQAK","new":"fg8EAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},{"offset":720216,"old":"ECEBAA==","new":"AGJbAA=="},{"offset":464,"old":"DAAAAA==","new":"4AUAAA=="},{"offset":472,"old":"AAIAAA==","new":"AAYAAA=="},{"offset":492,"old":"QAAAQg==","new":"YAAAYA=="},{"offset":208,"old":"AIBbAA==","new":"AIBbAA=="}]
 '@ | ConvertFrom-Json
 $PatchTail = [Convert]::FromBase64String('GzAFAIcDAABoAAARcjtGAHACJS0GJnJTRgBwKGQAAAoWcl1GAHAo3QAAChQLcrYDAHAMcvZGAHAovgoABgMo0QAACg0JchhHAHBv4gEACi0NCXIcRwBwb+IBAAosGHIgRwBwCSjAAAAKGBcoZAIABnPCAgAKehUTBAISBf4VNgAAAREFKF4DAAoLB3JCRwBwb18DAAosCBkTBN1HAgAAB3JgRwBwb18DAAosCBgTBN0yAgAAB3J8RwBwb18DAAosCBoTBN0dAgAAB3KkRwBwb18DAAosQAdypEcAcG9fAwAKb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3YAQAAGRME3dABAAAHcs5HAHBvXwMACiwIFxME3bsBAAAHcuhHAHBvXwMACi0NB3IASABwb18DAAosCR8JEwTdmAEAAAAHb2MDAApvZAMAChMGOBMBAAARBm9lAwAKEwcRB29mAwAKcmwwAHAWKGcDAAoTCBEIFppybDAAcCjAAAAKDBEIKIEAACsYQNoAAAARCBeackJHAHAWKLAAAAotCBkTBN0zAQAAEQgXmnJgRwBwFiiwAAAKLQgYEwTdGgEAABEIF5pyfEcAcBYosAAACi0IGhME3QEBAAARCBeacqRHAHAWKLAAAAotPREHb2ADAAooYQMACihiAwAKKDMDAAp0fAAAAXLARwBwb+8BAAotCBYTBN3BAAAAGRMEch5IAHAM3bMAAAARCBeacs5HAHAWKLAAAAotCBcTBN2aAAAAEQgXmnLoRwBwFiiwAAAKLBERCBeacgBIAHAWKLAAAAotBh8JEwTechEGbygAAAo64f7//94MEQYsBxEGbycAAArc3lYlKGIAAAoTCREJFyjTAQAKcjRIAHBv4gEACiwNclZIAHARCXNoAwAKegIoaQMACnJqSABwFiiwAAAKLQ1yckgAcBEJc2gDAAp6csJIAHARCXNoAwAKehEEHwA7MgAAABEEHwE7OQAAABEEHwI7PgAAABEEHwM7QwAAABEEHwQ7SQAAABEEHwk7UAAAADhZAAAAAgcIAwQo9AEABgrdYAAAAAIHCCj2AQAGCt1SAAAAAgcIKPcBAAYK3UQAAAACBwgDKPgBAAYK3TUAAAACBwgDBCj1AQAGCt0lAAAAAgcIKPkBAAYK3RcAAAACByj6AQAGCt0KAAAABywGB29qAwAK3AYqAEFMAAACAAAAQwEAADMBAAB2AgAADAAAAAAAAAAAAAAAbQAAABcCAACEAgAAVgAAADMAAAECAAAAJwAAAFQDAAB7AwAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
+$Profiles = @(
+    [pscustomobject]@{
+        Label          = '2.99.0.0 (413)'
+        OriginalHash   = $ExpectedHash
+        DownloadOnlyHash = $DownloadOnlyHash
+        PatchedHash    = $PatchedHash
+        OriginalLength = $OriginalLength
+        Patches        = $Patches
+    },
+    [pscustomobject]@{
+        Label          = '2.99.0.0 (414)'
+        OriginalHash   = '5b64d6d540c376390470cea3ab99d47661e8bca81be2ba647ea83e7d2e9428fa'
+        DownloadOnlyHash = $null
+        PatchedHash    = '3fda153bf7150e72259b2c59a3d68cb8442f1be2a2a29b48681b1d7de538eeea'
+        OriginalLength = 5985280
+        Patches        = @'
+[{"offset":464,"old":"DAA=","new":"AAY="},{"offset":473,"old":"Ag==","new":"Bg=="},{"offset":492,"old":"QA==","new":"YA=="},{"offset":495,"old":"Qg==","new":"Yg=="},{"offset":182174,"old":"copJAXB+/Qk=","new":"fg8EAAQAAAA="},{"offset":182183,"old":"BCwHfv0J","new":"AAAAAAAA"},{"offset":182190,"old":"BCsWfvsJ","new":"AAAAAAAA"},{"offset":182197,"old":"BP4GZxQ=","new":"AAAAAAA="},{"offset":182203,"old":"BnOOBQ==","new":"AAAAAA=="},{"offset":182208,"old":"CiWA/Qk=","new":"AAAAAAA="},{"offset":182214,"old":"BBQYc48F","new":"AAAAAAAA"},{"offset":182221,"old":"Cg==","new":"AA=="},{"offset":723212,"old":"ECEB","new":"AIJb"}]
+'@ | ConvertFrom-Json
+    }
+)
+
 function Get-Hash([byte[]] $Bytes) {
     $Hasher = [Security.Cryptography.SHA256]::Create()
     try { return ([BitConverter]::ToString($Hasher.ComputeHash($Bytes))).Replace('-','').ToLowerInvariant() }
@@ -26,31 +47,34 @@ function Get-Hash([byte[]] $Bytes) {
 }
 function Get-State([byte[]] $Bytes) {
     $Hash = Get-Hash $Bytes
-    if ($Hash -eq $ExpectedHash) { return 'original' }
-    if ($Hash -eq $DownloadOnlyHash) { return 'download-only' }
-    if ($Hash -eq $PatchedHash) { return 'patched' }
-    throw '文件版本或完整性不匹配，未修改。仅支持已验证的正式版 2.99.0.0 (413) 及本工具修复过的文件。'
+    $script:Profile = $null
+    foreach ($Candidate in $Profiles) {
+        if ($Hash -eq $Candidate.OriginalHash) { $script:Profile = $Candidate; return 'original' }
+        if ($Candidate.PatchedHash -and $Hash -eq $Candidate.PatchedHash) { $script:Profile = $Candidate; return 'patched' }
+    }
+    if ($DownloadOnlyHash -and $Hash -eq $DownloadOnlyHash) { $script:Profile = $Profiles[0]; return 'download-only' }
+    throw '文件版本或完整性不匹配，未修改。仅支持已验证的正式版 2.99.0.0 (413)/(414) 及本工具修复过的文件。'
 }
 function Get-Original([byte[]] $Bytes) {
     $State = Get-State $Bytes
-    $Original = New-Object byte[] $OriginalLength
-    [Array]::Copy($Bytes, 0, $Original, 0, $OriginalLength)
-    foreach ($Patch in $Patches) {
+    $Original = New-Object byte[] $Profile.OriginalLength
+    [Array]::Copy($Bytes, 0, $Original, 0, $Profile.OriginalLength)
+    foreach ($Patch in $Profile.Patches) {
         $Old = [Convert]::FromBase64String($Patch.old)
         [Array]::Copy($Old, 0, $Original, [int]$Patch.offset, $Old.Length)
     }
-    if ((Get-Hash $Original) -ne $ExpectedHash) { throw '原版还原校验失败，未修改。' }
+    if ((Get-Hash $Original) -ne $Profile.OriginalHash) { throw '原版还原校验失败，未修改。' }
     return ,$Original
 }
 function Get-Patched([byte[]] $Original) {
-    $Patched = New-Object byte[] ($OriginalLength + $PatchTail.Length)
-    [Array]::Copy($Original, 0, $Patched, 0, $OriginalLength)
-    foreach ($Patch in $Patches) {
+    $Patched = New-Object byte[] ($Profile.OriginalLength + $PatchTail.Length)
+    [Array]::Copy($Original, 0, $Patched, 0, $Profile.OriginalLength)
+    foreach ($Patch in $Profile.Patches) {
         $New = [Convert]::FromBase64String($Patch.new)
         [Array]::Copy($New, 0, $Patched, [int]$Patch.offset, $New.Length)
     }
-    [Array]::Copy($PatchTail, 0, $Patched, $OriginalLength, $PatchTail.Length)
-    if ((Get-Hash $Patched) -ne $PatchedHash) { throw '补丁校验失败，未修改。' }
+    [Array]::Copy($PatchTail, 0, $Patched, $Profile.OriginalLength, $PatchTail.Length)
+    if ((Get-Hash $Patched) -ne $Profile.PatchedHash) { throw '补丁校验失败，未修改。' }
     return ,$Patched
 }
 function Read-Program([string] $Path) {
@@ -110,7 +134,7 @@ try {
 |                                                                            |
 +----------------------------------------------------------------------------+
 '@ -ForegroundColor Cyan
-    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.1.1 | 免安装 Windows 版'
+    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.2.0 | 免安装 Windows 版'
     Write-Host '本工具免费提供，作者未在任何渠道售卖。如购买获取，请联系商家退款。'
     $Target = $env:PCL_TOOL_PATH
     $Mode = [string]$env:PCL_TOOL_MODE
@@ -141,7 +165,7 @@ try {
     if ($Mode -eq '--restore') {
         if ($State -eq 'original') { Write-Host '已经是原版，无需恢复。'; exit 0 }
         $Output = Read-Program $Backup
-        if ((Get-Hash $Output) -ne $ExpectedHash) { throw '备份校验失败，未恢复。' }
+        if ((Get-Hash $Output) -ne $Profile.OriginalHash) { throw '备份校验失败，未恢复。' }
         if ((Read-Host '从备份恢复原版？[y/N]') -notmatch '^(?i)y(es)?$') { Write-Host '已取消。'; exit 0 }
         Write-Atomic $Target $Data $Output
         Write-Host '已恢复原版，备份保留。'
@@ -149,12 +173,12 @@ try {
         if ($State -eq 'patched') { Write-Host '游戏下载和整合包拖入安装均已修复，无需重复操作。'; exit 0 }
         if ($Mode -ne '--yes' -and (Read-Host '请先关闭 PCL。备份并恢复游戏下载及整合包拖入安装？[y/N]') -notmatch '^(?i)y(es)?$') { Write-Host '已取消。'; exit 0 }
         $Original = Get-Original $Data
-        if ([IO.File]::Exists($Backup)) { if ((Get-Hash (Read-Program $Backup)) -ne $ExpectedHash) { throw '已有备份与原版不符，未修改。请先妥善保留该备份。' } }
+        if ([IO.File]::Exists($Backup)) { if ((Get-Hash (Read-Program $Backup)) -ne $Profile.OriginalHash) { throw '已有备份与原版不符，未修改。请先妥善保留该备份。' } }
         else {
             $Stream = New-Object IO.FileStream($Backup, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
             try { $Stream.Write($Original,0,$Original.Length); $Stream.Flush($true) } finally { $Stream.Dispose() }
         }
-        if ((Get-Hash (Read-Program $Backup)) -ne $ExpectedHash) { throw '备份校验失败，未修改。' }
+        if ((Get-Hash (Read-Program $Backup)) -ne $Profile.OriginalHash) { throw '备份校验失败，未修改。' }
         $Output = Get-Patched $Original
         if ((Get-State $Output) -ne 'patched') { throw '补丁校验失败。' }
         Write-Atomic $Target $Data $Output
