@@ -41,11 +41,13 @@ try {
     [IO.File]::WriteAllText($Target, 'deliberately unsupported test fixture')
     $TargetHash = (Get-FileHash -LiteralPath $Target).Hash
     $Probe = Join-Path $Temporary 'probe.cmd'
-    function Invoke-Probe([byte[]] $Data, [bool] $ShouldPassSelfCheck) {
+    function Invoke-Probe([byte[]] $Data, [bool] $ShouldPassSelfCheck, [string] $ProfilePath = '', [int] $ExpectedExit = 1) {
         [IO.File]::WriteAllBytes($Probe, $Data)
         $Start = New-Object Diagnostics.ProcessStartInfo
         $Start.FileName = $env:ComSpec
-        $Start.Arguments = '/d /s /c ""{0}" "{1}" --check"' -f $Probe, $Target
+        $ProfileArgument = ''
+        if ($ProfilePath) { $ProfileArgument = ' --profile "' + $ProfilePath + '"' }
+        $Start.Arguments = '/d /s /c ""{0}" "{1}" --check{2}"' -f $Probe, $Target, $ProfileArgument
         $Start.UseShellExecute = $false
         $Start.CreateNoWindow = $true
         $Start.RedirectStandardOutput = $true
@@ -58,7 +60,7 @@ try {
             $Stderr = $Process.StandardError.ReadToEndAsync()
             if (-not $Process.WaitForExit(30000)) { $Process.Kill(); throw 'Probe timed out.' }
             $Result = $Stdout.GetAwaiter().GetResult() + $Stderr.GetAwaiter().GetResult()
-            if ($Process.ExitCode -ne 1) { throw "Dummy file must be rejected: $Result" }
+            if ($Process.ExitCode -ne $ExpectedExit) { throw "Unexpected probe exit code: $Result" }
         } finally { $Process.Dispose() }
         if ($ShouldPassSelfCheck) {
             if ($Result -notmatch '(?m)^\[OK\] Script integrity self-check passed\.') { throw "Normal self-check failed: $Result" }
@@ -74,6 +76,27 @@ try {
     Invoke-Probe ([Text.Encoding]::UTF8.GetBytes($Changed)) $false
     Invoke-Probe ([Text.Encoding]::UTF8.GetBytes($Source.Replace('# PCL_TOOL_SHA256: ', '# REMOVED_DIGEST: '))) $false
     Write-Host 'PASS: original self-check, modified-script rejection and unsupported-file protection.'
+    $Dummy = [IO.File]::ReadAllBytes($Target)
+    $ChangedDummy = [byte[]]$Dummy.Clone()
+    $ChangedDummy[0] = 88
+    $DigestTool = [Security.Cryptography.SHA256]::Create()
+    try { $ChangedHash = ([BitConverter]::ToString($DigestTool.ComputeHash($ChangedDummy))).Replace('-','').ToLowerInvariant() }
+    finally { $DigestTool.Dispose() }
+    $ProfileFile = Join-Path $Temporary 'synthetic-profile.json'
+    $Profile = @{
+        schemaVersion = 1
+        name = 'Synthetic interface fixture, not PCL 414'
+        originalLength = $Dummy.Length
+        originalHash = $TargetHash.ToLowerInvariant()
+        patchedHash = $ChangedHash
+        patches = @(@{ offset = 0; old = [Convert]::ToBase64String([byte[]]@($Dummy[0])); new = [Convert]::ToBase64String([byte[]]@(88)) })
+    }
+    [IO.File]::WriteAllText($ProfileFile, ($Profile | ConvertTo-Json -Depth 5))
+    Invoke-Probe $Bytes $true $ProfileFile 0
+    $Profile.patches[0].offset = $Dummy.Length
+    [IO.File]::WriteAllText($ProfileFile, ($Profile | ConvertTo-Json -Depth 5))
+    Invoke-Probe $Bytes $true $ProfileFile 1
+    Write-Host 'PASS: external profile preflight and invalid-range rejection without writes.'
 } finally {
     # Delete only this process-created folder, after checking its resolved path.
     $ResolvedTemporary = [IO.Path]::GetFullPath($Temporary)

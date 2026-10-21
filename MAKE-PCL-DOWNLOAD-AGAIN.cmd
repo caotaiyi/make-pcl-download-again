@@ -2,15 +2,19 @@
 chcp 65001 >nul
 set "PCL_TOOL_PATH=%~1"
 set "PCL_TOOL_MODE=%~2"
+set "PCL_TOOL_PROFILE_FLAG=%~3"
+set "PCL_TOOL_PROFILE=%~4"
+set "PCL_TOOL_EXTRA=%~5"
 set "PCL_TOOL_SELF=%~f0"
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { $s=[Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes($env:PCL_TOOL_SELF)); $p='(?m)^(# PCL_TOOL_SHA256: )([0-9a-f]{64})(\r?)$'; $m=[regex]::Matches($s,$p); if($m.Count -ne 1){throw 'Missing or invalid script checksum.'}; $n=[regex]::Replace($s,$p,('${1}'+('0'*64)+'${3}')); $a=[Security.Cryptography.SHA256]::Create(); try{$h=([BitConverter]::ToString($a.ComputeHash([Text.Encoding]::UTF8.GetBytes($n)))).Replace('-','').ToLowerInvariant()}finally{$a.Dispose()}; if($h -ne $m[0].Groups[2].Value){throw 'Script integrity check failed. Download again from github.com/caotaiyi/make-pcl-download-again .'}; Write-Host '[OK] Script integrity self-check passed.' -ForegroundColor Green; & ([scriptblock]::Create(($s -split '(?m)^# POWERSHELL_START\r?$',2)[1])) } catch { Write-Host ('[STOP] '+$_.Exception.Message) -ForegroundColor Red; exit 1 }"
 set "PCL_TOOL_EXIT=%errorlevel%"
 if not defined PCL_TOOL_MODE pause
 exit /b %PCL_TOOL_EXIT%
-# PCL_TOOL_SHA256: d1b064418e9621203fef55b840bddc2902d29e292dd6106fcf1f292d8af7ddc5
+# PCL_TOOL_SHA256: bc054e9f9386f04ed585e6288e19b18404c974e4c83c22043db8edd89d2e0fed
 # POWERSHELL_START
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false)
+$ProfileName = 'PCL 正式版 2.99.0.0 (413)'
 $ExpectedHash = '6b6e1260cb5a1d6a303855f1c60cab3d0bc1aebba7e40a964180188b271e7386'
 $DownloadOnlyHash = 'ba7585206d97d63ad6f48cdf5fe3f79757b405990d85d1009e1ee19edf4272a9'
 $PatchedHash = '9d41a4947d9b3ab09582379349fdb77ef6bfc3e2034a2951f6abcdefecd32cdd'
@@ -24,12 +28,53 @@ function Get-Hash([byte[]] $Bytes) {
     try { return ([BitConverter]::ToString($Hasher.ComputeHash($Bytes))).Replace('-','').ToLowerInvariant() }
     finally { $Hasher.Dispose() }
 }
+function Import-PatchProfile([string] $Path) {
+    $Info = Get-Item -LiteralPath $Path
+    if ($Info.PSIsContainer -or $Info.Length -gt 2097152) { throw '补丁配置必须是小于 2 MB 的 JSON 文件。' }
+    $Profile = [IO.File]::ReadAllText($Info.FullName, [Text.Encoding]::UTF8) | ConvertFrom-Json
+    if ($Profile.schemaVersion -ne 1) { throw '不支持的补丁配置格式。' }
+    if ($Profile.name -isnot [string] -or $Profile.name.Length -lt 1 -or $Profile.name.Length -gt 128 -or $Profile.name -match '[\x00-\x1f]') { throw '配置名称无效。' }
+    foreach ($Field in @('originalHash', 'patchedHash')) {
+        if ($Profile.$Field -isnot [string] -or $Profile.$Field -cnotmatch '^[0-9a-f]{64}$') { throw "配置字段 $Field 必须是完整的小写 SHA-256。" }
+    }
+    if ($Profile.originalHash -eq $Profile.patchedHash) { throw '原版和修复后的摘要不能相同。' }
+    $Length = 0
+    if (-not [int]::TryParse([string]$Profile.originalLength, [ref]$Length) -or $Length -lt 1 -or $Length -gt 67108864) { throw '配置中的原始文件长度无效。' }
+    if ($Profile.downloadOnlyHash -and ([string]$Profile.downloadOnlyHash -cnotmatch '^[0-9a-f]{64}$')) { throw '旧补丁摘要格式无效。' }
+    $Items = @($Profile.patches)
+    if ($Items.Count -lt 1 -or $Items.Count -gt 256) { throw '配置需要 1 至 256 处修改。' }
+    $Ranges = @()
+    foreach ($Patch in $Items) {
+        $Offset = 0
+        if (-not [int]::TryParse([string]$Patch.offset, [ref]$Offset) -or $Offset -lt 0) { throw '修改位置无效。' }
+        if ($Patch.old -isnot [string] -or $Patch.new -isnot [string]) { throw '补丁字节必须是 Base64 字符串。' }
+        $Old = [Convert]::FromBase64String($Patch.old)
+        $New = [Convert]::FromBase64String($Patch.new)
+        if ($Old.Length -lt 1 -or $Old.Length -ne $New.Length -or ([long]$Offset + $Old.Length) -gt $Length) { throw '补丁长度或修改范围无效。' }
+        foreach ($Range in $Ranges) {
+            if ($Offset -lt $Range.end -and ($Offset + $Old.Length) -gt $Range.start) { throw '补丁修改范围不能重叠。' }
+        }
+        $Ranges += @{ start=$Offset; end=($Offset + $Old.Length) }
+    }
+    $Tail = [byte[]]@()
+    if ($Profile.tail) { $Tail = [Convert]::FromBase64String([string]$Profile.tail) }
+    if (($Length + $Tail.Length) -gt 67108864) { throw '修复后的文件不能超过 64 MB。' }
+    Set-Variable -Scope 1 -Name ProfileName -Value ($Profile.name)
+    Set-Variable -Scope 1 -Name ExpectedHash -Value ($Profile.originalHash)
+    Set-Variable -Scope 1 -Name PatchedHash -Value ($Profile.patchedHash)
+    Set-Variable -Scope 1 -Name DownloadOnlyHash -Value ($Profile.downloadOnlyHash)
+    Set-Variable -Scope 1 -Name OriginalLength -Value ($Length)
+    Set-Variable -Scope 1 -Name Patches -Value ($Items)
+    Set-Variable -Scope 1 -Name PatchTail -Value ($Tail)
+    Write-Host ('已加载自定义补丁配置：' + $ProfileName) -ForegroundColor Yellow
+    Write-Host '配置决定 EXE 的修改内容，请只使用你信任的适配者提供的配置。'
+}
 function Get-State([byte[]] $Bytes) {
     $Hash = Get-Hash $Bytes
     if ($Hash -eq $ExpectedHash) { return 'original' }
     if ($Hash -eq $DownloadOnlyHash) { return 'download-only' }
     if ($Hash -eq $PatchedHash) { return 'patched' }
-    throw '文件版本或完整性不匹配，未修改。仅支持已验证的正式版 2.99.0.0 (413) 及本工具修复过的文件。'
+    throw ('文件与当前配置不匹配，未修改。当前配置：' + $ProfileName + '。其他版本可通过 --profile 加载独立适配配置。')
 }
 function Get-Original([byte[]] $Bytes) {
     $State = Get-State $Bytes
@@ -46,6 +91,8 @@ function Get-Patched([byte[]] $Original) {
     $Patched = New-Object byte[] ($OriginalLength + $PatchTail.Length)
     [Array]::Copy($Original, 0, $Patched, 0, $OriginalLength)
     foreach ($Patch in $Patches) {
+        $Old = [Convert]::FromBase64String($Patch.old)
+        for ($i = 0; $i -lt $Old.Length; $i++) { if ($Original[[int]$Patch.offset + $i] -ne $Old[$i]) { throw '配置中的原始字节与文件不一致，未修改。' } }
         $New = [Convert]::FromBase64String($Patch.new)
         [Array]::Copy($New, 0, $Patched, [int]$Patch.offset, $New.Length)
     }
@@ -110,11 +157,16 @@ try {
 |                                                                            |
 +----------------------------------------------------------------------------+
 '@ -ForegroundColor Cyan
-    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.1.1 | 免安装 Windows 版'
+    Write-Host 'PCL 下载与整合包拖入安装修复工具 | v1.2.0 | 免安装 Windows 版'
     Write-Host '本工具免费提供，作者未在任何渠道售卖。如购买获取，请联系商家退款。'
     $Target = $env:PCL_TOOL_PATH
     $Mode = [string]$env:PCL_TOOL_MODE
     if ($Mode -notin @('', '--check', '--restore', '--yes')) { throw '用法：修复PCL下载.cmd "PCL.exe完整路径" [--check|--restore|--yes]' }
+    if ($env:PCL_TOOL_EXTRA) { throw '参数过多。' }
+    if ($env:PCL_TOOL_PROFILE_FLAG -or $env:PCL_TOOL_PROFILE) {
+        if ($env:PCL_TOOL_PROFILE_FLAG -ne '--profile' -or -not $env:PCL_TOOL_PROFILE) { throw '自定义配置用法：工具.cmd "PCL.exe路径" --check|--yes|--restore --profile "配置.json路径"' }
+        Import-PatchProfile $env:PCL_TOOL_PROFILE
+    }
     if (-not $Target -or (Test-Path -LiteralPath $Target -PathType Container)) {
         if ($Target) { $Roots = @($Target) } else {
             $Roots = @((Get-Location).Path, (Split-Path -LiteralPath $env:PCL_TOOL_SELF), ([Environment]::GetFolderPath('Desktop')), (Join-Path $env:USERPROFILE 'Downloads'), ([Environment]::GetFolderPath('MyDocuments')))
@@ -137,7 +189,12 @@ try {
     $Data = Read-Program $Target
     $State = Get-State $Data
     $Backup = $Target + '.pcl-download-backup'
-    if ($Mode -eq '--check') { Write-Host "检查通过：$State，文件受支持。"; exit 0 }
+    if ($Mode -eq '--check') {
+        $CheckOriginal = Get-Original $Data
+        $CheckPatched = Get-Patched $CheckOriginal
+        Write-Host "检查通过：$State，文件及补丁计划匹配配置 $ProfileName。"
+        exit 0
+    }
     if ($Mode -eq '--restore') {
         if ($State -eq 'original') { Write-Host '已经是原版，无需恢复。'; exit 0 }
         $Output = Read-Program $Backup
